@@ -1,8 +1,0 @@
-The rain in Spain falls mainly on the plain.
-
-To see how the algorithms can be used on varying types of containers, let's look a bit more closely at find.  Its job is to find a particular element in an unsorted sequence of elements.  Conceptually, we can list the steps find must take:
-
-1. It accesses the first element in the sequence.
-2. It compares that element to the value we want.
-
-

@@ -32,3 +32,8 @@ a3search
 # Sublime
 *sublime*
 
+# other
+indices/*
+targets/*
+license.txt
+
