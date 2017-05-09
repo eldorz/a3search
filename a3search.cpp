@@ -38,6 +38,7 @@ int main(int argc, char **argv) {
     }
   }
 
+  //TODO
   if (concept && scale > 999) {
     cout << "please remove this line it is just to keep compiler quiet" << endl;
   }
@@ -84,7 +85,7 @@ int main(int argc, char **argv) {
   search my_search(path_to_index_files);
   auto results = my_search.get_filenums(queries);
   for (auto it = results.begin(); it != results.end(); ++it) {
-    cout << *it << endl;
+    cout << files.at(*it) << endl;
   }
 }
 

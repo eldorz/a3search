@@ -32,3 +32,4 @@ indexing/string_util.h : utilities/safe_math.h utilities/utilities.h utilities/d
 
 clean :
 	-rm a3search *.o
+	-rm -rf indices

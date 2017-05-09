@@ -9,10 +9,20 @@
 using namespace std;
 	
 vector<uint16_t> search::get_filenums(const string &keyword) {
-	vector<uint16_t> results(keyword.size());
-  int count = 0;
-  for (auto it = results.begin(); it != results.end(); ++it) {
-    *it = ++count;
+  vector<uint16_t> results;
+  auto find_iter = dict.find(keyword);
+  if (find_iter == dict.end()) return results;
+  uint32_t point = find_iter->second.first;
+  uint16_t count = find_iter->second.second;
+  ifstream postingsfile;
+  string postpath = indexdir + POSTINGS_FILE_NAME;
+  postpath += INDEX_SUFFIX;
+  postingsfile.open(postpath.c_str(), ifstream::in);
+  postingsfile.seekg(point);
+  while (count--) {
+    uint16_t result;
+    postingsfile.read(reinterpret_cast<char *>(&result), sizeof(result));
+    results.push_back(result);
   }
 	return results;
 }

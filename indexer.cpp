@@ -26,8 +26,6 @@ void indexer::add_file(const string &file) {
 
 // finalise index
 void indexer::finalise() {
-  cout << *this;
-  
   // first the dictionary
   string indexpath = index_dir + DICTIONARY_FILE_NAME + INDEX_SUFFIX;
   ofstream dict(indexpath.c_str(), ofstream::out);
