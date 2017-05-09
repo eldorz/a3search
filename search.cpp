@@ -42,3 +42,10 @@ void search::load_dictionary() {
 	pointfile.close();
 	dictfile.close();
 }
+
+string search::process_keyword(const string &word) {
+	string result;
+	// something
+	// need to mirror indexer::process_word
+
+}
