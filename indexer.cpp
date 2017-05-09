@@ -14,6 +14,7 @@
 
 #include "constants.h"
 #include "indexer.h"
+#include "common.h"
 #include "stemming/english_stem.h"
 
 using namespace std;
@@ -158,10 +159,12 @@ void indexer::process_word(const string& cword,
       return;
   }
   string word = cword;
+  common_process_word(word);
+  /*
   transform(word.begin(), word.end(), word.begin(), ::tolower);
   stem(word);
   // this stemmer (rarely) returns words with tab prefix - we don't want those
-  if (word.front() == '\t') return;
+  if (word.front() == '\t') return; */
   if (word.size() == 0 || stopwords.count(word)) {
     return;
   }

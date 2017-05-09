@@ -32,6 +32,7 @@ int main(int argc, char **argv) {
     }
   }
   else {
+    if (argc > 8) usage(argv);
     for (int i = 3; i < argc; ++i) {
       queries.push_back(argv[i]);
     }

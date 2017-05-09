@@ -1,25 +1,39 @@
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 
-#include "search.h"
+#include "common.h"
 #include "constants.h"
+#include "search.h"
 
 using namespace std;
 	
 vector<uint16_t> search::get_filenums(const string &keyword) {
-	vector<uint16_t> results;
+	vector<uint16_t> results(keyword.size());
+  int count = 0;
+  for (auto it = results.begin(); it != results.end(); ++it) {
+    *it = ++count;
+  }
 	return results;
 }
 
-vector<uint16_t> search::get_filenums(const vector<string> &keywords) {
-	vector<string> stems;
+vector<uint16_t> search::get_filenums(vector<string> &keywords) {
+	vector<vector<uint16_t>> all_results;
 	for (auto it = keywords.begin(); it != keywords.end(); ++it) {
-		stems.emplace_back(process_keyword(*it));
+		common_process_word(*it);
+		all_results.push_back(get_filenums(*it));
 	}
-	for (auto it = stems.begin(); it != stems.end(); ++it) {
-		cout << *it << endl;
-	}
-	vector<uint16_t> results;
+
+	// sort all_results by ascending size
+	sort(all_results.begin(), all_results.end(), 
+		    [](const vector<uint16_t> &a, const vector<uint16_t> &b)
+				{ return a.size() < b.size(); });
+
+	vector<uint16_t> results = all_results[0];
+  for (auto it = all_results.begin() + 1; it != all_results.end(); ++it) {
+    results = intersect(results, *it);
+  }
+	
 	return results;
 }
 
@@ -43,9 +57,11 @@ void search::load_dictionary() {
 	dictfile.close();
 }
 
-string search::process_keyword(const string &word) {
-	string result;
-	// something
-	// need to mirror indexer::process_word
-
+// assumes vectors are sorted
+vector<uint16_t> search::intersect(const vector<uint16_t> &a, 
+		const vector<uint16_t> &b) {
+	vector<uint16_t> result;
+	set_intersection(a.begin(), a.end(), b.begin(), b.end(), 
+		back_inserter(result));
+  return result;
 }
