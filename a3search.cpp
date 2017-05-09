@@ -6,11 +6,12 @@
 #include <cstring>
 #include <cstdlib>
 #include <vector>
-#include <string>
 #include <dirent.h>
 
 #include "a3search.h"
 #include "indexer.h"
+#include "search.h"
+#include "constants.h"
 
 using namespace std;
 
@@ -40,9 +41,13 @@ int main(int argc, char **argv) {
     cout << "please remove this line it is just to keep compiler quiet" << endl;
   }
 
-  // make sure we have a trailing / on our path
+  // make sure we have a trailing / on our paths
   if (path_to_target_files.back() != '/') {
     path_to_target_files.push_back('/');
+  }
+
+  if (path_to_index_files.back() != '/') {
+    path_to_index_files.push_back('/');
   }
 
   // get a list of all the files in our target directory
@@ -61,13 +66,56 @@ int main(int argc, char **argv) {
   }
   closedir(dp);
 
+  // build index only if not already there
+  bool index_there = check_for_index(path_to_index_files);
+
   // add each file to the index
-  indexer my_indexer(files.size());
-  my_indexer.set_index_dir(path_to_index_files);
-  for (auto it = files.begin(); it != files.end(); ++it) {
-    my_indexer.add_file(*it);
+  if (!index_there) {
+    indexer my_indexer(files.size());
+    my_indexer.set_index_dir(path_to_index_files);
+    for (auto it = files.begin(); it != files.end(); ++it) {
+      my_indexer.add_file(*it);
+    }
+    my_indexer.finalise();
   }
-  my_indexer.finalise();
+
+  // now perform search
+  search my_search(path_to_index_files);
+  auto results = my_search.get_filenums(queries);
+  for (auto it = results.begin(); it != results.end(); ++it) {
+    cout << *it << endl;
+  }
+}
+
+bool check_for_index(const string &path) {
+  bool dir_there = false;
+  bool dict_there = false;
+  bool pointer_there = false;
+  bool postings_there = false;
+  bool freq_there = false;
+  string dictname = DICTIONARY_FILE_NAME;
+  dictname += INDEX_SUFFIX;
+  string pointername = POINTER_DOC_FREQ_FILE_NAME;
+  pointername += INDEX_SUFFIX;
+  string postingsname = POSTINGS_FILE_NAME;
+  postingsname += INDEX_SUFFIX;
+  string freqname = FREQUENCY_FILE_NAME;
+  freqname += INDEX_SUFFIX;
+  DIR *dp;
+  struct dirent *dirp;
+  
+  if ((dp = opendir(path.c_str()))) {
+    dir_there = true;
+  }
+  while (dir_there && (dirp = readdir(dp)) != NULL) {
+    if (dictname.compare(dirp->d_name) == 0) dict_there = true;
+    else if (pointername.compare(dirp->d_name) == 0) pointer_there = true;
+    else if (postingsname.compare(dirp->d_name) == 0) postings_there = true;
+    else if (freqname.compare(dirp->d_name) == 0) freq_there = true;
+  }
+
+  return dir_there && dict_there && pointer_there && postings_there && 
+    freq_there;
 }
 
 void usage(char **argv) {

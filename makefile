@@ -9,14 +9,17 @@ debug : all
 prof : CFLAGS=-Wall -Werror -pg -std=c++11
 prof : all
 
-a3search : a3search.o indexer.o
-	$(CC) $(CFLAGS) -o a3search a3search.o indexer.o
+a3search : a3search.o indexer.o search.o
+	$(CC) $(CFLAGS) -o a3search a3search.o indexer.o search.o
 
-a3search.o : a3search.cpp a3search.h constants.h indexer.h
+a3search.o : a3search.cpp a3search.h constants.h indexer.h search.h
 	$(CC) $(CFLAGS) -c a3search.cpp
 
 indexer.o : indexer.cpp indexer.h constants.h stemming/english_stem.h
 	$(CC) $(CFLAGS) -c indexer.cpp
+
+search.o : search.cpp search.h constants.h
+	$(CC) $(CFLAGS) -c search.cpp
 
 stemming/english_stem.h : stemming/stemming.h
 
