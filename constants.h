@@ -1,4 +1,6 @@
 // constants
+#ifndef A3SEARCH_CONSTANTS_H
+#define A3SEARCH_CONSTANTS_H
 
 #define MAXIMUM_WORD_LENGTH 40 
 #define STOPWORDS_FILE_NAME "stopwords.txt"
@@ -13,3 +15,5 @@
 #define FREQ_EL_SIZE    16 // in bytes
 #define POSTINGS_BEFORE_FLUSH \
 (FLUSH_SIZE * 1024 * 1024 / (POSTING_EL_SIZE + FREQ_EL_SIZE))
+
+#endif

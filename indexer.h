@@ -2,6 +2,9 @@
 // Laughlin Dawes 3106483
 // comp9319 assignment 3 - May 2017
 
+#ifndef INDEXER_H
+#define INDEXER_H
+
 #include <unordered_set>
 #include <map>
 #include <string>
@@ -37,3 +40,5 @@ private:
   void stem(string& token);
   void tokenise(const string& infilename);
 };
+
+#endif

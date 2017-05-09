@@ -2,6 +2,7 @@
 // comp9319 assignment 3
 // Laughlin Dawes 3106483 May 2017
 
+#include <algorithm>
 #include <iostream>
 #include <cstring>
 #include <cstdlib>
@@ -63,10 +64,13 @@ int main(int argc, char **argv) {
 
   while ((dirp = readdir(dp)) != NULL) {
     if (strcmp(dirp->d_name, ".") != 0 && strcmp(dirp->d_name, "..") != 0) {
-      files.push_back(path_to_target_files + string(dirp->d_name));
+      files.push_back(dirp->d_name);
     }
   }
   closedir(dp);
+
+  // make sure files are in alphabetical order
+  sort(files.begin(), files.end());
 
   // build index only if not already there
   bool index_there = check_for_index(path_to_index_files);
@@ -76,16 +80,26 @@ int main(int argc, char **argv) {
     indexer my_indexer(files.size());
     my_indexer.set_index_dir(path_to_index_files);
     for (auto it = files.begin(); it != files.end(); ++it) {
-      my_indexer.add_file(*it);
+      my_indexer.add_file(path_to_target_files + *it);
     }
     my_indexer.finalise();
   }
 
   // now perform search
-  search my_search(path_to_index_files);
-  auto results = my_search.get_filenums(queries);
+  ::search my_search(path_to_index_files);
+  auto results = my_search.get_filenums_freqs(queries);
+
+  // sort results by frequency
+  stable_sort (
+    results.begin(), results.end(), 
+    [](const filenum_freq_pair_t &a,
+    const filenum_freq_pair_t &b) {
+      return a.second > b.second;
+    }
+  );
+
   for (auto it = results.begin(); it != results.end(); ++it) {
-    cout << files.at(*it) << endl;
+    cout << files.at(it->first) << endl;
   }
 }
 
