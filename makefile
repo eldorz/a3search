@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-Wall -Werror -std=c++11 -O3
+CFLAGS=-Wall -Werror -std=c++11 -O2
 
 all : a3search
 
@@ -12,11 +12,17 @@ prof : all
 a3search : a3search.o indexer.o
 	$(CC) $(CFLAGS) -o a3search a3search.o indexer.o
 
-a3search.o : a3search.cpp a3search.h
+a3search.o : a3search.cpp a3search.h constants.h indexer.h
 	$(CC) $(CFLAGS) -c a3search.cpp
 
-indexer.o : indexer.cpp indexer.h
+indexer.o : indexer.cpp indexer.h constants.h stemming/english_stem.h
 	$(CC) $(CFLAGS) -c indexer.cpp
+
+stemming/english_stem.h : stemming/stemming.h
+
+stemming/stemming.h : indexing/string_util.h indexing/common_lang_constants.h
+
+indexing/string_util.h : utilities/safe_math.h utilities/utilities.h utilities/debug_logic.h
 
 clean :
 	-rm a3search *.o

@@ -3,7 +3,7 @@
 // comp9319 assignment 3 - May 2017
 
 #include <unordered_set>
-#include <unordered_map>
+#include <map>
 #include <string>
 #include <list>
 #include <utility>
@@ -17,23 +17,23 @@ public:
   indexer(int nf) : numfiles(nf) { }
   void add_file(const string &file);
   void finalise();
-  void set_index_dir(const string &dir) { 
-    index_dir = dir;
-    if (index_dir.back() != '/') index_dir.push_back('/');
-  }
+  void set_index_dir(const string &dir);
   
 
 private:
-  // for each word there is pair(existence list, frequency list)
+  // for each word there is pair(postings list, frequency list)
   int numfiles;
-  typedef pair<vector<bool>, vector<uint16_t>> listpair_t;
-  unordered_map<string, listpair_t> tokens;
+  typedef pair<vector<uint16_t>, vector<uint16_t>> listpair_t;
+  map<string, listpair_t> tokens;
 	unordered_set<string> stopwords;
-  int filenum = 0;
+  uint16_t filenum = 0;
   string index_dir;
+  uint32_t postings = 0;
+  uint8_t postfilenum = 0;
 
-  void tokenise(const string& infilename);
-  void stem(string& token);
-  void remove_punctuation(string& token);
+  void flush_to_file();
   bool is_punct(const char c);
+  void process_word(const string& word, unordered_set<string>& curfiletok);
+  void stem(string& token);
+  void tokenise(const string& infilename);
 };
