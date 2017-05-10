@@ -4,8 +4,6 @@
 
 
 #include <cassert>
-#include <iostream>
-#include <fstream>
 #include <algorithm>
 #include <utility>
 #include <locale>
@@ -83,17 +81,23 @@ void indexer::finalise() {
     flush_to_file();
     // merge the first two indices to a temporary index
     index_merge("0", "1", "temp0");
+    remove_files("0","1");
 
     // now merge the remaining indices into the temporary indices
     int tempnum = 1;
     while (tempnum < postfilenum - 2) {
-      index_merge("temp" + to_string(tempnum - 1), tempnum + 1, 
-        "temp" + to_string(tempnum));
+      string firstfile = "temp" + to_string(tempnum - 1);
+      string secondfile = to_string(tempnum + 1);
+      index_merge(firstfile, secondfile, "temp" + to_string(tempnum));
       ++tempnum;
+      remove_files(firstfile, secondfile);
     }
 
     // now merge the last temp into the final index
-    index_merge("temp" + to_string(tempnum - 1), tempnum + 1, INDEX_SUFFIX);
+    string firstfile = "temp" + to_string(tempnum - 1);
+    string secondfile = to_string(tempnum + 1);
+    index_merge(firstfile, secondfile, INDEX_SUFFIX);
+    remove_files(firstfile, secondfile);
   }
 }
 
@@ -136,39 +140,104 @@ void indexer::index_merge(const &string a, const &string b, const &string out) {
   b_dictfile >> next_b;
   bool a_eof = false;
   bool b_eof = false;
+  uint32_t pos = 0;  // postings pointer
+
   while (!a_eof && !b_eof) {
     if (a_eof) {
-      //TODO insert b
+      // insert b
+      listpair_t lists;
+      populate_lists(lists, b_pfile, b_postfile, b_freqfile);
+      insert_entry(out_dictfile, out_pfile, out_postfile, out_freqfile, pos,
+        next_b, lists);
       b_dictfile >> next_b;
       if (!b_dictfile) b_eof = true;
       continue;
     }
+
     if (b_eof) {
-      //TODO insert a
+      // insert a
+      listpair_t lists;
+      populate_lists(lists, a_pfile, a_postfile, a_freqfile);
+      insert_entry(out_dictfile, out_pfile, out_postfile, out_freqfile, pos,
+        next_a, lists);
       a_dictfile >> next_a;
       if (!a_dictfile) a_eof = true;
       continue;
     }
+
     int compare = next_a.compare(next_b);
+
     if (compare == 0) {
-      //TODO merge those two words
+      // merge those two words
+      listpair_t lists;
+      populate_lists(lists, a_pfile, a_postfile, a_freqfile);
+      populate_lists(lists, b_pfile, b_postfile, b_freqfile);
+      insert_entry(out_dictfile, out_pfile, out_postfile, out_freqfile, pos,
+        next_a, lists);
       a_dictfile >> next_a;
       b_dictfile >> next_b;
       if (!a_dictfile) a_eof = true;
       if (!b_dictfile) b_eof = true;
     }
+
     else if (compare < 0) {
       // a is smaller than b, insert a
-      //TODO insert a
+      // insert a
+      listpair_t lists;
+      uint32_t mypoint;
+      uint16_t myfreq;
+      populate_lists(lists, a_pfile, a_postfile, a_freqfile);
+      insert_entry(out_dictfile, out_pfile, out_postfile, out_freqfile, pos,
+        next_a, lists);
       a_dictfile >> next_a;
       if (!a_dictfile) a_eof = true;
-      continue;
     }
+
     else {
-      //TODO insert b
+      // insert b
+      listpair_t lists;
+      populate_lists(lists, b_pfile, b_postfile, b_freqfile);
+      insert_entry(out_dictfile, out_pfile, out_postfile, out_freqfile, pos,
+        next_b, lists);
       b_dictfile >> next_b;
+      ++b_dict_count;
       if (!b_dictfile) b_eof = true;
     }
+  }
+
+  close(out_dictfile);
+  close(out_pfile);
+  close(out_postfile);
+  close(out_freqfile);
+  close(a_dictfile);
+  close(a_pfile);
+  close(a_postfile);
+  close(a_freqfile);
+  close(b_dictfile);
+  close(b_pfile);
+  close(b_postfile);
+  close(b_freqfile);
+}
+
+void indexer::insert_entry(ofstream &dictfile, ofstream &out_pfile,
+  ofstream &out_postfile, ofstream &out_freqfile, uint32_t pos, 
+  const string &next, const listpair_t &lists) {
+  // dictionary entry
+  out_dictfile << next << endl;
+  // postings pointer & freq entry
+  out_pfile.write(reinterpret_cast<char *>(&pos), sizeof(pos));
+  uint16_t freq = lists.first.size();
+  pos += POSTING_EL_SIZE * freq; 
+  out_pfile.write(reinterpret_cast<char *>(&freq), sizeof(freq));
+  // postings entry
+  for (auto it = lists.first.begin(); 
+    it != lists.first.end(); ++it) {
+    out_postfile.write(reinterpret_cast<char *>(&(*it)), sizeof(*it));
+  }
+  // freq entry
+  for (auto it = lists.second.begin(); 
+    it != lists.second.end(); ++it) {
+    out_freqfile.write(reinterpret_cast<char *>(&(*it)), sizeof(*it));
   }
 }
 
@@ -190,7 +259,7 @@ void indexer::flush_to_file() {
   dict.close();
 
   // now the posting pointer and doc freq
-  /*indexpath = index_dir + POINTER_DOC_FREQ_FILE_NAME + to_string(postfilenum);
+  indexpath = index_dir + POINTER_DOC_FREQ_FILE_NAME + to_string(postfilenum);
   ofstream point_freq_file(indexpath.c_str(), ofstream::out);
   uint32_t pos = 0;
   unsigned posting_element_size = sizeof tokens[0].first[0];
@@ -200,7 +269,7 @@ void indexer::flush_to_file() {
     pos += posting_element_size * freq; 
     point_freq_file.write(reinterpret_cast<char *>(&freq), sizeof(freq));
   }
-  point_freq_file.close();*/
+  point_freq_file.close();
 
   // now the postings list
   indexpath = index_dir + POSTINGS_FILE_NAME + to_string(postfilenum);
@@ -229,6 +298,23 @@ void indexer::flush_to_file() {
 
   ++postfilenum;
   postings = 0;
+}
+
+void indexer::populate_lists(listpair_t &lists, ofstream &pfile, 
+  ofstream &postfilem, ofstream &freqfile) {
+  uint32_t mypoint;
+  uint16_t myfreq;
+  pfile.read(reinterpret_cast<char*>(&mypoint), sizeof(mypoint));
+  pfile.read(reinterpret_cast<char*>(&myfreq), sizeof(myfreq)); 
+  postfile.seekg(mypoint);
+  freqfile.seekg(mypoint);
+  for(int i = 0; i < myfreq; ++i) {
+    uint16_t post, freq;
+    postfile.read(reinterpret_cast<char*>(&post), sizeof(post));
+    freqfile.read(reinterpret_cast<char*>(&freq), sizeof(freq));
+    lists.first.push_back(post);
+    lists.second.push_back(freq);
+  }
 }
 
 // set index directory and make sure it exists

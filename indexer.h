@@ -5,6 +5,8 @@
 #ifndef INDEXER_H
 #define INDEXER_H
 
+#include <iostream>
+#include <fstream>
 #include <unordered_set>
 #include <map>
 #include <string>
@@ -35,6 +37,9 @@ private:
   uint8_t postfilenum = 0;
 
   void flush_to_file();
+  void index_merge(const &string, const &string, const &string);
+  void insert_entry(ofstream&, ofstream&, ofstream&, ofstream&, uint32_t,
+    const string&, const listpair_t&);
   bool is_punct(const char c);
   void process_word(const string& word, unordered_set<string>& curfiletok);
   void stem(string& token);
