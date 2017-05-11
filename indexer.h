@@ -35,13 +35,16 @@ private:
   string index_dir;
   uint32_t postings = 0;
   uint8_t postfilenum = 0;
+  uint32_t post_p = 0; // postings pointer
 
   void flush_to_file();
-  void index_merge(const &string, const &string, const &string);
-  void insert_entry(ofstream&, ofstream&, ofstream&, ofstream&, uint32_t,
-    const string&, const listpair_t&);
+  void index_merge(const string&, const string&, const string&);
+  void insert_entry(ofstream&, ofstream&, ofstream&, ofstream&,
+    const string&, listpair_t&);
   bool is_punct(const char c);
+  void populate_lists(listpair_t&, ifstream&, ifstream&, ifstream&);
   void process_word(const string& word, unordered_set<string>& curfiletok);
+  void remove_files(const string&, const string&);
   void stem(string& token);
   void tokenise(const string& infilename);
 };

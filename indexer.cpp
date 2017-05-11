@@ -4,6 +4,7 @@
 
 
 #include <cassert>
+#include <cstdio>
 #include <algorithm>
 #include <utility>
 #include <locale>
@@ -101,10 +102,10 @@ void indexer::finalise() {
   }
 }
 
-void indexer::index_merge(const &string a, const &string b, const &string out) {
+void indexer::index_merge(const string &a, const string &b, const string &out) {
   // open dictionary files
   ifstream a_dictfile, b_dictfile;
-  ofstrem out_dictfile;
+  ofstream out_dictfile;
   string dict_path = index_dir + DICTIONARY_FILE_NAME;
   a_dictfile.open((dict_path + a).c_str(), ifstream::in);
   b_dictfile.open((dict_path + b).c_str(), ifstream::in);
@@ -112,7 +113,7 @@ void indexer::index_merge(const &string a, const &string b, const &string out) {
 
   // open pointer/frequency files
   ifstream a_pfile, b_pfile;
-  ofstrem out_pfile;
+  ofstream out_pfile;
   string p_path = index_dir + POINTER_DOC_FREQ_FILE_NAME;
   a_pfile.open((p_path + a).c_str(), ifstream::in);
   b_pfile.open((p_path + b).c_str(), ifstream::in);
@@ -128,7 +129,7 @@ void indexer::index_merge(const &string a, const &string b, const &string out) {
 
   // open frequency files
   ifstream a_freqfile, b_freqfile;
-  ofstrem out_freqfile;
+  ofstream out_freqfile;
   string freq_path = index_dir + FREQUENCY_FILE_NAME;
   a_freqfile.open((freq_path + a).c_str(), ifstream::in);
   b_freqfile.open((freq_path + b).c_str(), ifstream::in);
@@ -140,14 +141,13 @@ void indexer::index_merge(const &string a, const &string b, const &string out) {
   b_dictfile >> next_b;
   bool a_eof = false;
   bool b_eof = false;
-  uint32_t pos = 0;  // postings pointer
 
   while (!a_eof && !b_eof) {
     if (a_eof) {
       // insert b
       listpair_t lists;
       populate_lists(lists, b_pfile, b_postfile, b_freqfile);
-      insert_entry(out_dictfile, out_pfile, out_postfile, out_freqfile, pos,
+      insert_entry(out_dictfile, out_pfile, out_postfile, out_freqfile,
         next_b, lists);
       b_dictfile >> next_b;
       if (!b_dictfile) b_eof = true;
@@ -158,7 +158,7 @@ void indexer::index_merge(const &string a, const &string b, const &string out) {
       // insert a
       listpair_t lists;
       populate_lists(lists, a_pfile, a_postfile, a_freqfile);
-      insert_entry(out_dictfile, out_pfile, out_postfile, out_freqfile, pos,
+      insert_entry(out_dictfile, out_pfile, out_postfile, out_freqfile,
         next_a, lists);
       a_dictfile >> next_a;
       if (!a_dictfile) a_eof = true;
@@ -172,7 +172,7 @@ void indexer::index_merge(const &string a, const &string b, const &string out) {
       listpair_t lists;
       populate_lists(lists, a_pfile, a_postfile, a_freqfile);
       populate_lists(lists, b_pfile, b_postfile, b_freqfile);
-      insert_entry(out_dictfile, out_pfile, out_postfile, out_freqfile, pos,
+      insert_entry(out_dictfile, out_pfile, out_postfile, out_freqfile,
         next_a, lists);
       a_dictfile >> next_a;
       b_dictfile >> next_b;
@@ -184,10 +184,8 @@ void indexer::index_merge(const &string a, const &string b, const &string out) {
       // a is smaller than b, insert a
       // insert a
       listpair_t lists;
-      uint32_t mypoint;
-      uint16_t myfreq;
       populate_lists(lists, a_pfile, a_postfile, a_freqfile);
-      insert_entry(out_dictfile, out_pfile, out_postfile, out_freqfile, pos,
+      insert_entry(out_dictfile, out_pfile, out_postfile, out_freqfile,
         next_a, lists);
       a_dictfile >> next_a;
       if (!a_dictfile) a_eof = true;
@@ -197,37 +195,36 @@ void indexer::index_merge(const &string a, const &string b, const &string out) {
       // insert b
       listpair_t lists;
       populate_lists(lists, b_pfile, b_postfile, b_freqfile);
-      insert_entry(out_dictfile, out_pfile, out_postfile, out_freqfile, pos,
+      insert_entry(out_dictfile, out_pfile, out_postfile, out_freqfile,
         next_b, lists);
       b_dictfile >> next_b;
-      ++b_dict_count;
       if (!b_dictfile) b_eof = true;
     }
   }
 
-  close(out_dictfile);
-  close(out_pfile);
-  close(out_postfile);
-  close(out_freqfile);
-  close(a_dictfile);
-  close(a_pfile);
-  close(a_postfile);
-  close(a_freqfile);
-  close(b_dictfile);
-  close(b_pfile);
-  close(b_postfile);
-  close(b_freqfile);
+  out_dictfile.close();
+  out_pfile.close();
+  out_postfile.close();
+  out_freqfile.close();
+  a_dictfile.close();
+  a_pfile.close();
+  a_postfile.close();
+  a_freqfile.close();
+  b_dictfile.close();
+  b_pfile.close();
+  b_postfile.close();
+  b_freqfile.close();
 }
 
-void indexer::insert_entry(ofstream &dictfile, ofstream &out_pfile,
-  ofstream &out_postfile, ofstream &out_freqfile, uint32_t pos, 
-  const string &next, const listpair_t &lists) {
+void indexer::insert_entry(ofstream &out_dictfile, ofstream &out_pfile,
+  ofstream &out_postfile, ofstream &out_freqfile, const string &next, 
+  listpair_t &lists) {
   // dictionary entry
   out_dictfile << next << endl;
   // postings pointer & freq entry
-  out_pfile.write(reinterpret_cast<char *>(&pos), sizeof(pos));
+  uint32_t post_p = out_postfile.tellp();
+  out_pfile.write(reinterpret_cast<char *>(&post_p), sizeof(post_p));
   uint16_t freq = lists.first.size();
-  pos += POSTING_EL_SIZE * freq; 
   out_pfile.write(reinterpret_cast<char *>(&freq), sizeof(freq));
   // postings entry
   for (auto it = lists.first.begin(); 
@@ -300,8 +297,8 @@ void indexer::flush_to_file() {
   postings = 0;
 }
 
-void indexer::populate_lists(listpair_t &lists, ofstream &pfile, 
-  ofstream &postfilem, ofstream &freqfile) {
+void indexer::populate_lists(listpair_t &lists, ifstream &pfile, 
+  ifstream &postfile, ifstream &freqfile) {
   uint32_t mypoint;
   uint16_t myfreq;
   pfile.read(reinterpret_cast<char*>(&mypoint), sizeof(mypoint));
@@ -316,6 +313,22 @@ void indexer::populate_lists(listpair_t &lists, ofstream &pfile,
     lists.second.push_back(freq);
   }
 }
+
+// remove index files that are no longer needed
+void indexer::remove_files(const string &a, const string &b) {
+  vector<string> prefixes = {
+    DICTIONARY_FILE_NAME, 
+    POINTER_DOC_FREQ_FILE_NAME,
+    POSTINGS_FILE_NAME,
+    FREQUENCY_FILE_NAME
+  };
+
+  for (auto it = prefixes.begin(); it != prefixes.end(); ++it) {
+    *it = index_dir + *it;
+    remove((*it + a).c_str());
+    remove((*it + b).c_str());
+  }
+} 
 
 // set index directory and make sure it exists
 void indexer::set_index_dir(const string &d) {
