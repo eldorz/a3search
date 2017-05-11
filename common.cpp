@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include "common.h"
-#include "stemming/english_stem.h"
+#include "english_stem.h"
 
 using namespace std;
 

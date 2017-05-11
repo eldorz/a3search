@@ -14,7 +14,7 @@
 #include "constants.h"
 #include "indexer.h"
 #include "common.h"
-#include "stemming/english_stem.h"
+#include "english_stem.h" // Oleander stemming library
 
 using namespace std;
 

@@ -11,8 +11,8 @@ it under the terms of the BSD License.
 #define __STEM_H__
 
 #include <algorithm>
-#include "../indexing/string_util.h"
-#include "../indexing/common_lang_constants.h"
+#include "string_util.h"
+#include "common_lang_constants.h"
 
 ///Namespace for stemming classes.
 namespace stemming

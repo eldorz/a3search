@@ -23,9 +23,9 @@ it under the terms of the BSD License.
 #include <clocale>
 #include <stdexcept>
 #include "common_lang_constants.h"
-#include "../utilities/safe_math.h"
-#include "../utilities/utilities.h"
-#include "../utilities/debug_logic.h"
+#include "safe_math.h"
+#include "utilities.h"
+#include "debug_logic.h"
 
 namespace string_util
     {
