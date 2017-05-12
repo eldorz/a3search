@@ -239,10 +239,7 @@ void indexer::insert_entry(ofstream &out_dictfile, ofstream &out_pfile,
 }
 
 void indexer::flush_to_file() {
-
-  cout << "flushing to file " << 
-  POSTINGS_FILE_NAME + to_string(postfilenum) + INDEX_SUFFIX << endl;
-
+  
   // first the dictionary
   string indexpath = index_dir + DICTIONARY_FILE_NAME + to_string(postfilenum);
   ofstream dict(indexpath.c_str(), ofstream::out);
