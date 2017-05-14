@@ -20,7 +20,6 @@ public:
 		if (indexdir.back() != '/') indexdir.push_back('/');
 		load_dictionary();
 	}
-	vector<uint16_t> get_filenums(vector<string> &keywords);
   vector<filenum_freq_pair_t> get_filenums_freqs(vector<string> &keywords);
 
 private:
@@ -28,7 +27,6 @@ private:
 	typedef pair<uint32_t, uint16_t> pointer_freq_t;
 	unordered_map<string, pointer_freq_t> dict;
 	
-	vector<uint16_t> get_filenums(const string &keyword);
   vector<filenum_freq_pair_t> get_filenums_freqs(const string &keyword);
 	vector<uint16_t> intersect(const vector<uint16_t> &, 
 		const vector<uint16_t> &);

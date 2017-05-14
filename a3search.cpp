@@ -13,10 +13,18 @@
 #include "indexer.h"
 #include "search.h"
 #include "constants.h"
+#include "wordnet/wn.h"
 
 using namespace std;
 
 int main(int argc, char **argv) {
+  // test wordnet library
+  string result;
+  string searchstring = "apple";
+  result = findtheinfo(const_cast<char*>(searchstring.c_str()), 1, 5, 0); 
+  cout << result << endl;
+
+
 	// a3search path_to_target_files path_to_index_files [-c 0.5] query_string_1 
   // [query_string_2 .. query_string_5]
   if (argc < 4 || argc > 10) usage(argv);

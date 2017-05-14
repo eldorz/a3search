@@ -35,7 +35,6 @@ private:
   string index_dir;
   uint32_t postings = 0;
   uint8_t postfilenum = 0;
-  uint32_t post_p = 0; // postings pointer
 
   void flush_to_file();
   void index_merge(const string&, const string&, const string&);
