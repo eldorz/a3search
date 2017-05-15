@@ -20,7 +20,7 @@ public:
 		if (indexdir.back() != '/') indexdir.push_back('/');
 		load_dictionary();
 	}
-  vector<filenum_freq_pair_t> get_filenums_freqs(vector<string> &keywords);
+  vector<filenum_freq_pair_t> get_filenums_freqs(const vector<string> &);
 
 private:
 	string indexdir;

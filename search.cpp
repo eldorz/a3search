@@ -9,13 +9,13 @@
 using namespace std;
 
 vector<filenum_freq_pair_t> 
-search::get_filenums_freqs(vector<string> &keywords) {
+search::get_filenums_freqs(const vector<string> &kw) {
+  vector<string> keywords(kw.begin(), kw.end());
   vector<vector<filenum_freq_pair_t>> all_results;
   for (auto it = keywords.begin(); it != keywords.end(); ++it) {
     common_process_word(*it);
     all_results.push_back(get_filenums_freqs(*it));
   }
-
   // sort all_results by ascending size
   sort(all_results.begin(), all_results.end(), 
         [](const vector<filenum_freq_pair_t> &a, 
@@ -26,7 +26,6 @@ search::get_filenums_freqs(vector<string> &keywords) {
   for (auto it = all_results.begin() + 1; it != all_results.end(); ++it) {
     results = intersect(results, *it);
   }
-  
   return results;
 }
 
