@@ -39,11 +39,6 @@ int main(int argc, char **argv) {
     }
   }
 
-  //TODO
-  if (concept && scale > 999) {
-    cout << "please remove this line it is just to keep compiler quiet" << endl;
-  }
-
   // make sure we have a trailing / on our paths
   if (path_to_target_files.back() != '/') {
     path_to_target_files.push_back('/');
@@ -135,7 +130,7 @@ int main(int argc, char **argv) {
   sort( scaled_results.begin(), scaled_results.end(),
     [](const scaled_result_t &a,
       const scaled_result_t &b) {
-      return a.first < a.second;
+      return a.first < b.first;
     });
 
   // reverse sort results by frequency
