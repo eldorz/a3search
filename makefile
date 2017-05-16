@@ -1,7 +1,7 @@
 CC=gcc
 CPPC=g++
-CPPFLAGS=-Wall -Werror -std=c++11 -O2
-CFLAGS=-w -O2
+CPPFLAGS=-Wall -Werror -std=c++11 -O3
+CFLAGS=-w -O3
 WORDNET_OFILES=wordnet/binsrch.o wordnet/search.o wordnet/wnrtl.o wordnet/morph.o wordnet/wnglobal.o wordnet/wnhelp.o wordnet/wnutil.o
 
 all : a3search
@@ -17,7 +17,7 @@ prof : all
 a3search : a3search.o indexer.o search.o common.o $(WORDNET_OFILES)
 	$(CPPC) $(CPPFLAGS) -o a3search a3search.o indexer.o search.o common.o $(WORDNET_OFILES)
 
-a3search.o : a3search.cpp a3search.h constants.h indexer.h search.h
+a3search.o : a3search.cpp a3search.h constants.h indexer.h search.h wordnet/wn.h
 	$(CPPC) $(CPPFLAGS) -c a3search.cpp
 
 indexer.o : indexer.cpp indexer.h constants.h english_stem.h
@@ -28,6 +28,9 @@ search.o : search.cpp search.h constants.h
 
 common.o : common.cpp common.h
 	$(CPPC) $(CPPFLAGS) -c common.cpp
+
+wordnet/wn.h : wordnet.tar
+	tar -xf wordnet.tar
 
 wordnet/binsrch.o : wordnet/binsrch.c
 	$(CC) $(CFLAGS) -o wordnet/binsrch.o -c wordnet/binsrch.c 
