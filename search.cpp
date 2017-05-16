@@ -13,7 +13,6 @@ search::get_filenums_freqs(const vector<string> &kw) {
   vector<string> keywords(kw.begin(), kw.end());
   vector<vector<filenum_freq_pair_t>> all_results;
   for (auto it = keywords.begin(); it != keywords.end(); ++it) {
-    common_process_word(*it);
     all_results.push_back(get_filenums_freqs(*it));
   }
   // sort all_results by ascending size
@@ -30,8 +29,9 @@ search::get_filenums_freqs(const vector<string> &kw) {
 }
 
 vector<filenum_freq_pair_t> 
-search::get_filenums_freqs(const string &keyword) {
+search::get_filenums_freqs(string keyword) {
   vector<filenum_freq_pair_t> results;
+  common_process_word(keyword);
   auto find_iter = dict.find(keyword);
   if (find_iter == dict.end()) return results;
   uint32_t point = find_iter->second.first;

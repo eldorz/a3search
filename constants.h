@@ -10,7 +10,7 @@
 #define POSTINGS_FILE_NAME "postings"
 #define FREQUENCY_FILE_NAME "frequency"
 
-#define FLUSH_SIZE 28      // in megabytes
+#define FLUSH_SIZE 32      // in megabytes, this is a maximum, actual size less
 #define POSTING_EL_SIZE 16 // in bytes
 #define FREQ_EL_SIZE    16 // in bytes
 #define POSTINGS_BEFORE_FLUSH \

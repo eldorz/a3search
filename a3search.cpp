@@ -86,40 +86,49 @@ int main(int argc, char **argv) {
   }
 
   // now perform search
+  vector<vector<float>> interim_table(files.size(), 
+    vector<float>(queries.size())); // rows is filenum, cols is wordnum
   ::search my_search(path_to_index_files);
-  auto results = my_search.get_filenums_freqs(queries);
 
-  // now concept search
-  vector<scaled_result_t> scaled_results;
-  if (concept) {
-    vector<scaled_result_t> interim_results;
-    // for each keyword, find a set of synonyms
-    for (auto it = queries.begin(); it != queries.end(); ++it) {
-      unordered_set<string> this_syn = synonyms(*it);
-      vector<string> synvec(this_syn.begin(), this_syn.end());
-      // perform search on current synonym set
-      auto concept_results = my_search.get_filenums_freqs(synvec);
-      // add results to our result list
-      for (auto it = concept_results.begin(); it != concept_results.end(); 
-        ++it) {
-      interim_results.push_back(make_pair(it->first, it->second * scale));
-      }
+  // for each word, find exact results and concept results
+  for (auto wordit = queries.begin(); wordit != queries.end(); ++wordit) {
+    // exact results
+    auto exact_result = my_search.get_filenums_freqs(*wordit);
+    // populate interim table
+    for (auto resit = exact_result.begin(); resit != exact_result.end(); 
+      ++resit) {
+      interim_table[resit->first][wordit - queries.begin()] = resit->second;
     }
-    // if each filenum does not appear queries.size() times, it did not
-    // match all of the concepts, and should not be included
-    vector<unsigned> filecounts(files.size());
-    vector<float> filesums(files.size());
-    for (auto it = interim_results.begin(); it != interim_results.end(); ++it) {
-      ++filecounts[it->first];
-      filesums[it->first] += it->second;
-      if (filecounts[it->first] == queries.size()) {
-        scaled_results.push_back(make_pair(it->first, filesums[it->first]));
+
+    // concept results
+    if (concept) {
+      unordered_set<string> syn = synonyms(*wordit);
+      for (const string &s : syn) {
+        auto con_res = my_search.get_filenums_freqs(s);
+        for (auto resit = con_res.begin(); resit != con_res.end(); ++resit) {
+          // add each concept result to the interim table
+          interim_table[resit->first][wordit - queries.begin()] 
+            += resit->second * scale;
+        }
       }
     }
   }
 
-  for (auto it = results.begin(); it != results.end(); ++it) {
-    scaled_results.push_back(make_pair(it->first, it->second));
+  // for a file to match it must be non-zero in all columns (all words)
+  vector<scaled_result_t> scaled_results;  // filenums and totals
+  for (auto it = interim_table.begin(); it != interim_table.end(); ++it) {
+    bool all_pos = true;
+    float total = 0.0;
+    for (float subtot : *it) {
+      if (subtot == 0) {
+        all_pos = false;
+        break;
+      }
+      else total += subtot;
+    }
+    if (all_pos) {
+      scaled_results.push_back(make_pair(it - interim_table.begin(), total));
+    }
   }
 
   // sort results by file number (= lexicographic)
@@ -139,7 +148,7 @@ int main(int argc, char **argv) {
   );
 
   for (auto it = scaled_results.begin(); it != scaled_results.end(); ++it) {
-    cout << files.at(it->first) << endl;
+    cout << files.at(it->first) << " " << endl;
   }
 }
 
@@ -201,8 +210,12 @@ unordered_set<string> synonyms(const string &word) {
        wt, SIMPTR, ALLSENSES);
       while (result != NULL) {
         for (int i = 0; i < result->wcount; ++i) {
-          // do not record if synonym is actually the same word
-          if (strcmp(result->words[i], word.c_str()) == 0) continue;
+          // do not record if synonym is actually the same word, or if their
+          // stems are the same
+          string temp(result->words[i]);
+          if (temp == word) continue;
+          common_process_word(temp);
+          if (temp == word) continue;
           // do not record if a phrase (contains underscore) is returned
           int wordpos = 0;
           bool underscore = false;

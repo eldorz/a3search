@@ -21,13 +21,13 @@ public:
 		load_dictionary();
 	}
   vector<filenum_freq_pair_t> get_filenums_freqs(const vector<string> &);
+  vector<filenum_freq_pair_t> get_filenums_freqs(string keyword);
 
 private:
 	string indexdir;
 	typedef pair<uint32_t, uint16_t> pointer_freq_t;
 	unordered_map<string, pointer_freq_t> dict;
 	
-  vector<filenum_freq_pair_t> get_filenums_freqs(const string &keyword);
 	vector<uint16_t> intersect(const vector<uint16_t> &, 
 		const vector<uint16_t> &);
   vector<filenum_freq_pair_t> intersect(const vector<filenum_freq_pair_t> &,
