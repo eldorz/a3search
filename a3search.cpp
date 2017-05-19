@@ -1,6 +1,7 @@
-// a3search
-// comp9319 assignment 3
-// Laughlin Dawes 3106483 May 2017
+/* a3search
+ * comp9319 assignment 3
+ * Laughlin Dawes 3106483 May 2017
+ */
 
 #include <algorithm>
 #include <iostream>
@@ -17,8 +18,7 @@
 using namespace std;
 
 int main(int argc, char **argv) {
-	// a3search path_to_target_files path_to_index_files [-c 0.5] query_string_1 
-  // [query_string_2 .. query_string_5]
+	// handle arguments
   if (argc < 4 || argc > 10) usage(argv);
   string path_to_target_files(argv[1]);
   string path_to_index_files(argv[2]);
@@ -43,7 +43,6 @@ int main(int argc, char **argv) {
   if (path_to_target_files.back() != '/') {
     path_to_target_files.push_back('/');
   }
-
   if (path_to_index_files.back() != '/') {
     path_to_index_files.push_back('/');
   }
@@ -56,7 +55,6 @@ int main(int argc, char **argv) {
     cerr << "failed to open " << path_to_target_files << endl;
     exit(1);
   }
-
   while ((dirp = readdir(dp)) != NULL) {
     if (strcmp(dirp->d_name, ".") != 0 && strcmp(dirp->d_name, "..") != 0) {
       files.push_back(dirp->d_name);
@@ -127,23 +125,25 @@ int main(int argc, char **argv) {
   }
 
   // sort results by file number (= lexicographic)
-  sort( scaled_results.begin(), scaled_results.end(),
-    [](const scaled_result_t &a,
-      const scaled_result_t &b) {
+  sort (scaled_results.begin(), scaled_results.end(),
+    [](const scaled_result_t &a, const scaled_result_t &b) {
       return a.first < b.first;
     });
 
   // reverse sort results by frequency
-  stable_sort (
-    scaled_results.begin(), scaled_results.end(), 
-    [](const scaled_result_t &a,
-    const scaled_result_t &b) {
+  stable_sort (scaled_results.begin(), scaled_results.end(), 
+    [](const scaled_result_t &a, const scaled_result_t &b) {
       return a.second > b.second;
-    }
-  );
+    });
 
+  // output results
   for (auto it = scaled_results.begin(); it != scaled_results.end(); ++it) {
-    cout << files.at(it->first) << " " << endl;
+    cout << files.at(it->first) << endl;
+  }
+
+  // output newline if there are no results
+  if (scaled_results.size() == 0) {
+    cout << endl;
   }
 }
 

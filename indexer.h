@@ -1,6 +1,7 @@
-// Indexer - creates an index over all provided files
-// Laughlin Dawes 3106483
-// comp9319 assignment 3 - May 2017
+/* Indexer - creates an index over all provided files
+ * Laughlin Dawes 3106483
+ * comp9319 assignment 3 - May 2017
+ */
 
 #ifndef INDEXER_H
 #define INDEXER_H
@@ -44,7 +45,6 @@ private:
   void populate_lists(listpair_t&, ifstream&, ifstream&, ifstream&);
   void process_word(const string& word, unordered_set<string>& curfiletok);
   void remove_files(const string&, const string&);
-  void stem(string& token);
   void tokenise(const string& infilename);
 };
 

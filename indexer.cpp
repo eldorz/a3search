@@ -1,12 +1,11 @@
-// Indexer - creates an index over all provided files
-// Laughlin Dawes 3106483
-// comp9319 assignment 3 - May 2017
-
+/* Indexer - creates an index over all provided files
+ * Laughlin Dawes 3106483
+ * comp9319 assignment 3 - May 2017
+ */
 
 #include <cassert>
 #include <cstdio>
 #include <algorithm>
-#include <utility>
 #include <locale>
 #include <stdlib.h>
 #include <dirent.h>
@@ -40,7 +39,6 @@ void indexer::finalise() {
     dict.close();
 
     // now the posting pointer and doc freq
-    // NB could shorten this as doc freq is a function of posting pointer
     indexpath = index_dir + POINTER_DOC_FREQ_FILE_NAME + INDEX_SUFFIX;
     ofstream point_freq_file(indexpath.c_str(), ofstream::out);
     uint32_t pos = 0;
@@ -219,18 +217,22 @@ void indexer::index_merge(const string &a, const string &b, const string &out) {
 void indexer::insert_entry(ofstream &out_dictfile, ofstream &out_pfile,
   ofstream &out_postfile, ofstream &out_freqfile, const string &next, 
   listpair_t &lists) {
+
   // dictionary entry
   out_dictfile << next << endl;
+
   // postings pointer & freq entry
   uint32_t post_p = out_postfile.tellp();
   out_pfile.write(reinterpret_cast<char *>(&post_p), sizeof(post_p));
   uint16_t freq = lists.first.size();
   out_pfile.write(reinterpret_cast<char *>(&freq), sizeof(freq));
+
   // postings entry
   for (auto it = lists.first.begin(); 
     it != lists.first.end(); ++it) {
     out_postfile.write(reinterpret_cast<char *>(&(*it)), sizeof(*it));
   }
+
   // freq entry
   for (auto it = lists.second.begin(); 
     it != lists.second.end(); ++it) {
@@ -347,8 +349,7 @@ void indexer::set_index_dir(const string &d) {
   }
 }
 
-// load the words from one file into memory, removing stopwords and punctuation,
-// making lower case, and stemming
+// tokenise a file, keeping token frequency stats
 void indexer::tokenise(const string& infilename) {
 
   char nextword[MAXIMUM_WORD_LENGTH];
@@ -397,20 +398,21 @@ void indexer::process_word(const string& cword,
     flush_to_file();
   }
 
+  // no small words
   if (cword.size() < 3) {
       return;
   }
+
+  // make a mutable copy and lowercase / stem it
   string word = cword;
   common_process_word(word);
-  /*
-  transform(word.begin(), word.end(), word.begin(), ::tolower);
-  stem(word);
-  // this stemmer (rarely) returns words with tab prefix - we don't want those
-  if (word.front() == '\t') return; */
+
+  // no stopwords
   if (word.size() == 0 || stopwords.count(word)) {
     return;
   }
 
+  // add to tokens or increment stats as required
   if (tokens.count(word)) {  // word seen before
     if (curfiletok.count(word)) {  // in this file
       ++tokens.at(word).second.back();
@@ -436,18 +438,6 @@ void indexer::process_word(const string& cword,
   }
 }
 
-void indexer::stem(string& token) {
-  // make a widechar token
-  wstring wtoken(token.begin(), token.end());
-
-  // stem that wstring
-  stemming::english_stem<> StemEnglish;
-  StemEnglish(wtoken);
-
-  // convert back
-  token = string(wtoken.begin(), wtoken.end());
-}
-
 inline bool indexer::is_punct(const char c) {
   // we do not need to consider digits or symbols
   if (c >= 'A' && c <= 'Z') return false;
@@ -456,15 +446,6 @@ inline bool indexer::is_punct(const char c) {
 }
 
 ostream &operator<<(ostream &os, const indexer &ind) {
-  /* for (auto it = ind.tokens.begin(); it != ind.tokens.end(); ++it) {
-    os << it->first << " ";
-    for (auto e_it = it->second.first.begin(); e_it != it->second.first.end(); 
-        ++e_it) {
-      if (*e_it) cout << '1';
-      else cout << '0';
-    }
-    cout << endl;
-  } */
   cout << "number of words: " << ind.tokens.size() << endl;
   return os;
 }

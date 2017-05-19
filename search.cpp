@@ -31,11 +31,19 @@ search::get_filenums_freqs(const vector<string> &kw) {
 vector<filenum_freq_pair_t> 
 search::get_filenums_freqs(string keyword) {
   vector<filenum_freq_pair_t> results;
+
+  // lowercase and stem keywords
   common_process_word(keyword);
+
+  // locate keyword in dictionary
   auto find_iter = dict.find(keyword);
   if (find_iter == dict.end()) return results;
+
+  // get file pointer and posting count for that word
   uint32_t point = find_iter->second.first;
   uint16_t count = find_iter->second.second;
+
+  // look up files for postings and word frequencies
   ifstream postingsfile;
   string postpath = indexdir + POSTINGS_FILE_NAME;
   postpath += INDEX_SUFFIX;
@@ -55,9 +63,11 @@ search::get_filenums_freqs(string keyword) {
   }
   freqfile.close();
   postingsfile.close();
+
   return results;
 }
 
+// load dictionary file and file pointers using a hash table for quick lookup
 void search::load_dictionary() {
 	ifstream dictfile, pointfile;
 	string dictpath = indexdir + DICTIONARY_FILE_NAME;
@@ -78,7 +88,7 @@ void search::load_dictionary() {
 	dictfile.close();
 }
 
-// assumes vectors are sorted
+// set intersection of two vectors, assumes vectors are sorted
 vector<uint16_t> search::intersect(const vector<uint16_t> &a, 
 		const vector<uint16_t> &b) {
 	vector<uint16_t> result;
@@ -87,6 +97,7 @@ vector<uint16_t> search::intersect(const vector<uint16_t> &a,
   return result;
 }
 
+// specialised set intersection of two vectors, assumes vectors are sorted
 vector<filenum_freq_pair_t> search::intersect(
   const vector<filenum_freq_pair_t> &a, 
   const vector<filenum_freq_pair_t> &b) {
